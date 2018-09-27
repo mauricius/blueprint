@@ -7,3 +7,6 @@ Route::get('/', function () {
 });
 
 Route::resource('projects', 'ProjectsController');
+Route::post('projects/{id}/upload', ['as' => 'projects.upload', 'uses' => 'ProjectsController@upload']);
+
+Route::get('uploads', ['as' => 'uploads.index', 'uses' => 'UploadsController@index']);
