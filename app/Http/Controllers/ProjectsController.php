@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProjectRequest;
+use App\Http\Requests\UploadRequest;
 use App\Interfaces\ProjectEloquentInterface;
 use Illuminate\Http\RedirectResponse;
 
@@ -66,9 +67,9 @@ class ProjectsController extends Controller
      */
     public function show($id)
     {
-        app()->abort(404, 'Not implemented');
+        $project = $this->projects->find($id, ['uploads']);
 
-        return view('projects.show');
+        return view('projects.show', compact('project'));
     }
 
     /**
@@ -96,6 +97,30 @@ class ProjectsController extends Controller
         $this->projects->update($id, $request->all());
 
         return redirect()->route('projects.index');
+    }
+
+    /**
+     * Upload a single file for the resource.
+     *
+     * @param  UploadRequest $request
+     * @param  $id
+     * @return RedirectResponse
+     */
+    public function upload(UploadRequest $request, $id)
+    {
+        if ($request->file('file')->isValid()) {
+            $path = $request->file->store('uploads', 'public');
+
+            $this->projects->attachUpload($id, [
+                'filename'          => ltrim($path, 'uploads/'),
+                'extension'         => $request->file->getClientOriginalExtension(),
+                'original_filename' => $request->file->getClientOriginalName(),
+                'mimetype'          => $request->file->getClientMimeType(),
+                'size'              => $request->file->getClientSize()
+            ]);
+        }
+
+        return redirect()->route('projects.show', $id);
     }
 
     /**
